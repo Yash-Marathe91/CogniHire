@@ -23,10 +23,10 @@ export default function AIMatchingPage() {
     setShowResults(false);
     
     try {
-      const response = await fetch('/api/match', {
+      const response = await fetch('/api/candidates/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobDescription }),
+        body: JSON.stringify({ query: jobDescription }),
       });
       
       const data = await response.json();
@@ -35,7 +35,14 @@ export default function AIMatchingPage() {
         throw new Error(data.error || 'Failed to analyze candidates');
       }
       
-      setCandidates(data.candidates);
+      // Map similarity to match_score for UI consistency
+      const mappedCandidates = (data.candidates || []).map((c: any) => ({
+        ...c,
+        match_score: Math.round(c.similarity * 100),
+        reasoning: "Matched via AI Semantic Search"
+      }));
+      
+      setCandidates(mappedCandidates);
       setShowResults(true);
     } catch (err: any) {
       setError(err.message);
@@ -52,17 +59,17 @@ export default function AIMatchingPage() {
           <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
             <FileText className="h-4 w-4 text-primary" />
           </div>
-          <h2 className="text-xl font-heading font-bold">Job Requirements</h2>
+          <h2 className="text-xl font-heading font-bold">Natural Language Search</h2>
         </div>
         
         <Card className="flex-1 bg-card border-border/50 flex flex-col overflow-hidden">
           <div className="p-4 border-b border-border/50 flex justify-between items-center bg-muted/20">
-            <span className="text-sm font-medium text-muted-foreground">Paste Job Description or Requirements</span>
+            <span className="text-sm font-medium text-muted-foreground">Ask AI for the perfect candidate</span>
           </div>
           <textarea 
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
-            placeholder="e.g. Looking for a Senior React Developer with 5+ years of experience, strong knowledge of Next.js, TypeScript, and state management. Must have experience leading small teams..."
+            placeholder="e.g. Find React developers with AI experience and 3+ years of experience..."
             className="flex-1 w-full bg-transparent resize-none p-4 outline-none text-sm placeholder:text-muted-foreground/50"
           />
           {error && (

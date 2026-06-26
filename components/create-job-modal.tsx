@@ -20,7 +20,9 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
     location: "",
     type: "Full-time",
     deadline: "",
+    salary_range: "",
     description: "",
+    requirements: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -35,14 +37,12 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
     try {
       const supabase = createClient();
       
-      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error("You must be logged in to create a job.");
       }
 
-      // Insert the job
       const { data, error: insertError } = await supabase
         .from("jobs")
         .insert([
@@ -52,7 +52,9 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
             location: formData.location,
             type: formData.type,
             deadline: formData.deadline,
+            salary_range: formData.salary_range,
             description: formData.description,
+            requirements: formData.requirements,
             user_id: user.id,
             status: "Active",
             applicants_count: 0
@@ -62,18 +64,18 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
 
       if (insertError) throw insertError;
 
-      // Reset and close
       setFormData({
         title: "",
         department: "",
         location: "",
         type: "Full-time",
         deadline: "",
+        salary_range: "",
         description: "",
+        requirements: "",
       });
       setIsOpen(false);
       
-      // Refresh the page data
       router.refresh();
       
     } catch (err: any) {
@@ -93,7 +95,7 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Job Posting</DialogTitle>
           <DialogDescription>
@@ -137,9 +139,15 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="deadline" className="text-sm font-medium">Application Deadline *</label>
-            <Input id="deadline" name="deadline" type="date" required value={formData.deadline} onChange={handleChange} />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="deadline" className="text-sm font-medium">Application Deadline *</label>
+              <Input id="deadline" name="deadline" type="date" required value={formData.deadline} onChange={handleChange} />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="salary_range" className="text-sm font-medium">Salary Range</label>
+              <Input id="salary_range" name="salary_range" value={formData.salary_range} onChange={handleChange} placeholder="e.g. $100k - $120k" />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -147,10 +155,23 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
             <textarea 
               id="description" 
               name="description" 
-              rows={4}
+              rows={3}
               value={formData.description} 
               onChange={handleChange}
               placeholder="Describe the role and responsibilities..."
+              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 resize-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="requirements" className="text-sm font-medium">Requirements</label>
+            <textarea 
+              id="requirements" 
+              name="requirements" 
+              rows={3}
+              value={formData.requirements} 
+              onChange={handleChange}
+              placeholder="List the required skills and qualifications..."
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 resize-none"
             />
           </div>

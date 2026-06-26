@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Users, Calendar, MapPin, Briefcase, Plus, MoreHorizontal, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -16,6 +16,8 @@ export default function JobDetailsPage() {
   const [job, setJob] = useState<any>(null);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -98,6 +100,28 @@ export default function JobDetailsPage() {
           </div>
         </div>
         <div className="ml-auto flex gap-2">
+          <Button 
+            variant="outline" 
+            className="border-destructive/50 text-destructive hover:bg-destructive/10"
+            onClick={async () => {
+              if (confirm("Are you sure you want to delete this job? This action cannot be undone.")) {
+                setIsDeleting(true);
+                try {
+                  const supabase = createClient();
+                  await supabase.from("jobs").delete().eq("id", id);
+                  router.push("/jobs");
+                  router.refresh();
+                } catch (err) {
+                  console.error("Failed to delete job", err);
+                  setIsDeleting(false);
+                }
+              }
+            }}
+            disabled={isDeleting}
+          >
+            {isDeleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+            Delete Job
+          </Button>
           <Button variant="outline" className="border-border/50">Edit Job</Button>
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]">
             <Users className="h-4 w-4 mr-2" /> View All Applicants ({job.applicants_count})
@@ -143,7 +167,17 @@ export default function JobDetailsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h4 className="font-medium mb-3 text-sm">Required Skills</h4>
+                  <h4 className="font-medium mb-2 text-sm text-muted-foreground">Salary Range</h4>
+                  <p className="font-medium">{job.salary_range || "Not specified"}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-3 text-sm text-muted-foreground">Requirements</h4>
+                  <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {job.requirements || "No specific requirements listed."}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-3 text-sm text-muted-foreground">Required Skills</h4>
                   <div className="flex flex-wrap gap-2">
                     {["Team Player", "Problem Solving", "Communication", "Agile", "Git"].map(skill => (
                       <Badge key={skill} variant="secondary" className="bg-muted px-3 py-1 font-normal">

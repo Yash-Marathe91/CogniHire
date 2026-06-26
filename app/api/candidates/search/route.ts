@@ -12,8 +12,8 @@ export async function POST(request: Request) {
 
     // 1. Generate Embedding for the Search Query
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    // Using the recommended embedding model for Gemini
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    // Using the stable embedding model
+    const model = genAI.getGenerativeModel({ model: "gemini-embedding-2" });
     
     const result = await model.embedContent(query);
     const embedding = result.embedding.values;

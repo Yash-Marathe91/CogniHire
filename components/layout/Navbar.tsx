@@ -13,15 +13,14 @@ export function Navbar() {
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             <Link href="#features" className="text-foreground/70 transition-colors hover:text-foreground">Features</Link>
-            <Link href="#workflow" className="text-foreground/70 transition-colors hover:text-foreground">How it Works</Link>
-            <Link href="#testimonials" className="text-foreground/70 transition-colors hover:text-foreground">Customers</Link>
+            <Link href="https://github.com" target="_blank" className="text-foreground/70 transition-colors hover:text-foreground">Open Source</Link>
           </nav>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 ml-4 border-l border-border/50 pl-4">
             <Link href="/login">
-              <Button variant="ghost">Log in</Button>
+              <Button variant="ghost" className="hover:bg-accent/50 rounded-full px-6">Log in</Button>
             </Link>
-            <Link href="/register">
-              <Button className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
+            <Link href="/login">
+              <Button className="bg-primary text-primary-foreground shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)] hover:bg-primary/90 hover:scale-105 transition-all rounded-full px-6">
                 Get Started
               </Button>
             </Link>

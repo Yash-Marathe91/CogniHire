@@ -101,7 +101,7 @@ export async function POST(request: Request) {
     // Generate Embedding for Semantic Search
     let embeddingVector = null;
     try {
-      const embedModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+      const embedModel = genAI.getGenerativeModel({ model: "gemini-embedding-2" });
       const embeddingText = `
         Candidate Name: ${parsedData.name || 'Unknown'}
         Role: ${parsedData.role || 'Unknown'}

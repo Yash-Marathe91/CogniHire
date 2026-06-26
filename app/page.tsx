@@ -3,89 +3,136 @@
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BrainCircuit, Users, Target, Zap } from "lucide-react";
+import { ArrowRight, BrainCircuit, Users, Target, Zap, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const fadeIn = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
 const stagger = {
-  visible: { transition: { staggerChildren: 0.1 } }
+  visible: { transition: { staggerChildren: 0.15 } }
 };
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-background text-foreground overflow-hidden selection:bg-primary/30">
       <Navbar />
       
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4">
-          {/* Animated Background */}
-          <div className="absolute inset-0 -z-10 overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary/20 blur-[120px] rounded-full opacity-50" />
-            <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-secondary/10 blur-[100px] rounded-full opacity-30" />
+          {/* Animated Background Gradients */}
+          <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 0.5, scale: 1 }}
+              transition={{ duration: 2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+              className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] bg-primary/20 blur-[150px] rounded-full" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 0.3, scale: 1 }}
+              transition={{ duration: 2.5, repeat: Infinity, repeatType: "reverse", ease: "easeInOut", delay: 1 }}
+              className="absolute bottom-[-20%] right-[10%] w-[800px] h-[800px] bg-secondary/15 blur-[150px] rounded-full" 
+            />
           </div>
 
           <motion.div 
-            className="container mx-auto max-w-5xl text-center"
+            className="container mx-auto max-w-5xl text-center relative z-10"
             initial="hidden"
             animate="visible"
             variants={stagger}
           >
-            <motion.div variants={fadeIn} className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm text-primary mb-8 backdrop-blur-md">
-              <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse" />
-              Next-Gen Recruitment Intelligence
+            <motion.div variants={fadeIn} className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-8 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Next-Gen AI Recruitment Intelligence
             </motion.div>
             
-            <motion.h1 variants={fadeIn} className="font-heading text-5xl md:text-7xl font-bold tracking-tight mb-8">
-              Hire the <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Top 1%</span><br />
-              with AI Precision.
+            <motion.h1 variants={fadeIn} className="font-heading text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[1.1]">
+              Hire the <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-secondary">Top 1%</span><br />
+              with Precision.
             </motion.h1>
             
-            <motion.p variants={fadeIn} className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
-              CogniHire analyzes thousands of data points to find your perfect candidate match in seconds. Say goodbye to manual screening and hello to predictive hiring.
+            <motion.p variants={fadeIn} className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+              CogniHire analyzes millions of data points to find your perfect candidate match in seconds. Move beyond keyword matching to true semantic understanding.
             </motion.p>
             
-            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)] transition-all">
-                Start Hiring Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg h-14 px-8 border-border hover:bg-accent/50 backdrop-blur-md">
-                Book a Demo
-              </Button>
+            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <Link href="/login" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full text-lg h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-[0_0_40px_-10px_rgba(59,130,246,0.6)] transition-all hover:scale-105 active:scale-95 group">
+                  Start Hiring Now
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link href="/login" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full text-lg h-14 px-10 rounded-full border-border/60 hover:bg-accent/50 backdrop-blur-md transition-all hover:scale-105 active:scale-95">
+                  View Demo
+                </Button>
+              </Link>
             </motion.div>
+          </motion.div>
+          
+          {/* Dashboard Preview Mockup */}
+          <motion.div 
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+            className="mt-24 relative max-w-6xl mx-auto hidden md:block"
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent z-10 bottom-0 h-1/2 mt-auto pointer-events-none" />
+            <div className="rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm p-2 shadow-2xl overflow-hidden ring-1 ring-white/10 relative">
+              <div className="absolute top-4 left-4 flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+              </div>
+              <div className="mt-8 bg-background rounded-lg border border-border/50 p-6 flex flex-col gap-6 opacity-80 pointer-events-none">
+                 {/* Fake Dashboard UI */}
+                 <div className="flex justify-between items-center border-b border-border/50 pb-4">
+                    <div className="flex flex-col gap-2"><div className="w-48 h-6 bg-muted rounded-md" /><div className="w-32 h-4 bg-muted/50 rounded-md" /></div>
+                    <div className="w-10 h-10 bg-primary/20 rounded-full" />
+                 </div>
+                 <div className="grid grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-muted/30 rounded-lg border border-border/50" />)}
+                 </div>
+                 <div className="grid grid-cols-3 gap-6 mt-4">
+                    <div className="col-span-2 h-64 bg-muted/20 rounded-lg border border-border/50" />
+                    <div className="h-64 bg-muted/20 rounded-lg border border-border/50" />
+                 </div>
+              </div>
+            </div>
           </motion.div>
         </section>
 
         {/* Features Grid */}
-        <section id="features" className="py-24 bg-surface-container-lowest/50 border-t border-border/50">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Intelligence at Every Step</h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Our platform uses advanced machine learning to automate the tedious parts of recruiting.</p>
+        <section id="features" className="py-32 bg-surface-container-lowest/50 border-t border-border/30 relative">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="text-center mb-20">
+              <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6">Intelligence at Every Step</h2>
+              <p className="text-muted-foreground text-xl max-w-2xl mx-auto">Our platform uses hybrid LLM and Vector Search to automate the tedious parts of recruiting.</p>
             </div>
             
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { icon: BrainCircuit, title: "AI Matching", desc: "Our neural network scores candidates against your job description with 98% accuracy." },
-                { icon: Users, title: "Automated Sourcing", desc: "Connect with passive candidates across the web instantly based on skill profiles." },
-                { icon: Target, title: "Predictive Success", desc: "Forecast candidate longevity and performance before the first interview." },
-                { icon: Zap, title: "Instant Insights", desc: "Generate comprehensive candidate summaries and interview questions automatically." }
+                { icon: BrainCircuit, title: "Hybrid AI Matching", desc: "Our neural network scores candidates against your job description using Gemini 2.5 Flash." },
+                { icon: Users, title: "Semantic Search", desc: "Find candidates by actual meaning using pgvector, skipping outdated keyword filters." },
+                { icon: Target, title: "Predictive Analytics", desc: "Live dashboards tracking your hiring funnel, time-to-hire, and real-time skill distribution." },
+                { icon: Zap, title: "Instant Insights", desc: "Generate comprehensive candidate summaries and explicit reasoning for every match instantly." }
               ].map((feature, i) => (
                 <motion.div 
                   key={i}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="p-8 rounded-2xl bg-card border border-border/50 hover:border-primary/50 transition-colors group shadow-lg"
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ delay: i * 0.15, duration: 0.5 }}
+                  className="p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all hover:-translate-y-2 group shadow-lg relative overflow-hidden"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <feature.icon className="h-6 w-6 text-primary" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform" />
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform group-hover:bg-primary/20">
+                    <feature.icon className="h-7 w-7 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
@@ -94,7 +141,47 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* CTA Section */}
+        <section className="py-32 relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary/5" />
+          <div className="container mx-auto px-4 text-center relative z-10">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl md:text-5xl font-bold mb-8"
+            >
+              Ready to transform your hiring?
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+            >
+              Join the future of talent acquisition today. Stop filtering keywords and start hiring actual talent.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <Link href="/login">
+                <Button size="lg" className="text-lg h-16 px-12 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_50px_-10px_rgba(59,130,246,0.7)] hover:scale-105 transition-all">
+                  Get Started Free
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </section>
       </main>
+      
+      <footer className="py-8 border-t border-border/30 bg-background text-center text-muted-foreground text-sm">
+        <p>© {new Date().getFullYear()} CogniHire AI. All rights reserved.</p>
+      </footer>
     </div>
   );
 }

@@ -87,15 +87,16 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
+    <>
+      <div onClick={() => setIsOpen(true)} className="inline-block cursor-pointer">
         {children || (
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]">
+          <div className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)] hover:bg-primary/90 h-9 px-4 py-2">
             <Plus className="h-4 w-4 mr-2" /> Create New Job
-          </Button>
+          </div>
         )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      </div>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Job Posting</DialogTitle>
           <DialogDescription>
@@ -188,5 +189,6 @@ export function CreateJobModal({ children }: { children?: React.ReactNode }) {
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

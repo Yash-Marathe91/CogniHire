@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Search, Filter, MoreHorizontal, Download, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -78,9 +79,11 @@ export default function CandidatesPage() {
           <Button variant="outline" className="border-border/50 hover:bg-muted">
             <Download className="h-4 w-4 mr-2" /> Export
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]">
-            <Plus className="h-4 w-4 mr-2" /> Add Candidate
-          </Button>
+          <Link href="/candidates/add">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]">
+              <Plus className="h-4 w-4 mr-2" /> Add Candidate
+            </Button>
+          </Link>
         </div>
       </div>
 

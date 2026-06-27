@@ -75,36 +75,6 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
           
-          {/* Dashboard Preview Mockup */}
-          <motion.div 
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-            className="mt-24 relative max-w-6xl mx-auto hidden md:block"
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent z-10 bottom-0 h-1/2 mt-auto pointer-events-none" />
-            <div className="rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm p-2 shadow-2xl overflow-hidden ring-1 ring-white/10 relative">
-              <div className="absolute top-4 left-4 flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              </div>
-              <div className="mt-8 bg-background rounded-lg border border-border/50 p-6 flex flex-col gap-6 opacity-80 pointer-events-none">
-                 {/* Fake Dashboard UI */}
-                 <div className="flex justify-between items-center border-b border-border/50 pb-4">
-                    <div className="flex flex-col gap-2"><div className="w-48 h-6 bg-muted rounded-md" /><div className="w-32 h-4 bg-muted/50 rounded-md" /></div>
-                    <div className="w-10 h-10 bg-primary/20 rounded-full" />
-                 </div>
-                 <div className="grid grid-cols-4 gap-4">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-muted/30 rounded-lg border border-border/50" />)}
-                 </div>
-                 <div className="grid grid-cols-3 gap-6 mt-4">
-                    <div className="col-span-2 h-64 bg-muted/20 rounded-lg border border-border/50" />
-                    <div className="h-64 bg-muted/20 rounded-lg border border-border/50" />
-                 </div>
-              </div>
-            </div>
-          </motion.div>
         </section>
 
         {/* Features Grid */}

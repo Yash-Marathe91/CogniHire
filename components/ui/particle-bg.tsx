@@ -110,8 +110,8 @@ export function ParticleShader() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 mix-blend-screen"
-      style={{ opacity: 0.7 }}
+      className="fixed inset-0 pointer-events-none z-[50]"
+      style={{ opacity: 0.8 }}
     />
   );
 }

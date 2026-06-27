@@ -7,8 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useBlindHiring } from "@/components/providers/BlindHiringProvider";
+import Link from "next/link";
 
 export default function AIMatchingPage() {
+  const { isBlindMode } = useBlindHiring();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
@@ -150,17 +153,22 @@ export default function AIMatchingPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                 >
-                  <Card className="bg-card border-border/50 hover:border-primary/50 transition-all cursor-pointer group relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <Avatar className="h-12 w-12 border border-border shrink-0">
-                        <AvatarImage src={candidate.avatar_url} />
-                        <AvatarFallback>{candidate.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-bold text-lg group-hover:text-primary transition-colors truncate pr-4">{candidate.name}</h4>
+                  <Link href={`/candidates/${candidate.id || ''}`}>
+                    <Card className="bg-card border-border/50 hover:border-primary/50 transition-all cursor-pointer group relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <Avatar className={`h-12 w-12 border border-border shrink-0 ${isBlindMode ? "blur-sm" : ""}`}>
+                          <AvatarImage src={isBlindMode ? '' : candidate.avatar_url} />
+                          <AvatarFallback className={isBlindMode ? "bg-muted text-muted-foreground" : ""}>
+                            {isBlindMode ? 'C' : (candidate.name ? candidate.name.charAt(0) : 'U')}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-lg group-hover:text-primary transition-colors truncate pr-4">
+                              {isBlindMode ? `Candidate #${(candidate.id || '').substring(0, 5).toUpperCase()}` : candidate.name}
+                            </h4>
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="text-xs text-muted-foreground hidden sm:inline-block">AI Score</span>
                             <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-success/30 bg-success/10 text-success font-bold text-sm">
@@ -190,6 +198,7 @@ export default function AIMatchingPage() {
                       </Button>
                     </CardContent>
                   </Card>
+                  </Link>
                 </motion.div>
               ))}
             </div>

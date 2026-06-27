@@ -137,10 +137,8 @@ export default function AddCandidatePage() {
                 <p className="text-muted-foreground text-sm mb-6 max-w-sm">
                   Or click the button below to select a file from your computer. Our AI will automatically extract all necessary information.
                 </p>
-                <label>
-                  <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 cursor-pointer">
-                    <span>Select File</span>
-                  </Button>
+                <label className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
+                  Select File
                   <input type="file" className="hidden" accept=".pdf,.doc,.docx,.txt" onChange={handleFileChange} />
                 </label>
               </div>

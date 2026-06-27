@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,10 +9,16 @@ import { login } from "../actions";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(searchParams.get("error") || "");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      setError(params.get("error") || "");
+    }
+  }, []);
 
   const handleOAuth = async (provider: "google" | "github") => {
     setIsLoading(true);

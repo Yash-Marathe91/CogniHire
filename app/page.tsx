@@ -4,12 +4,13 @@ import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BrainCircuit, Users, Target, Zap, ShieldCheck, Sparkles } from "lucide-react";
+import { ParticleShader } from "@/components/ui/particle-bg";
 import Link from "next/link";
 import Image from "next/image";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as any } }
 };
 
 const stagger = {
@@ -18,10 +19,11 @@ const stagger = {
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground overflow-hidden selection:bg-primary/30">
+    <div className="flex min-h-screen flex-col bg-background text-foreground overflow-hidden selection:bg-primary/30 relative">
+      <ParticleShader />
       <Navbar />
       
-      <main className="flex-1">
+      <main className="flex-1 stitch-ambient-bg relative z-10">
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4">
           {/* Animated Background Gradients */}
@@ -94,17 +96,16 @@ export default function LandingPage() {
               ].map((feature, i) => (
                 <motion.div 
                   key={i}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ delay: i * 0.15, duration: 0.5 }}
-                  className="p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all hover:-translate-y-2 group shadow-lg relative overflow-hidden"
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.5 }}
+                  className="stitch-card-glow p-8 rounded-2xl flex flex-col items-start gap-4 hover:-translate-y-2 transition-transform duration-300"
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform" />
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform group-hover:bg-primary/20">
-                    <feature.icon className="h-7 w-7 text-primary" />
+                  <div className="p-3 bg-primary/10 rounded-xl">
+                    <feature.icon className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                  <h3 className="text-xl font-bold">{feature.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
                 </motion.div>
               ))}

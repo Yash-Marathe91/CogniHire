@@ -99,3 +99,73 @@
     @apply font-sans;
   }
 }
+
+/* ==========================================
+   STITCH PREMIUM SHADERS & GLOWS 
+   ========================================== */
+
+/* Ambient Glowing Backgrounds (Mesh/Radial) */
+.stitch-ambient-bg {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--background);
+}
+
+.stitch-ambient-bg::before,
+.stitch-ambient-bg::after {
+  content: "";
+  position: absolute;
+  filter: blur(120px);
+  z-index: 0;
+  opacity: 0.4;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.stitch-ambient-bg::before {
+  top: -10%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+}
+
+.stitch-ambient-bg::after {
+  bottom: -20%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+  animation: float 15s ease-in-out infinite alternate;
+}
+
+/* Premium Card Glows */
+.stitch-card-glow {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.dark .stitch-card-glow {
+  background: rgba(10, 13, 32, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.stitch-card-glow:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px -5px var(--primary);
+  transform: translateY(-2px);
+}
+
+/* Animated Floating Effect */
+@keyframes float {
+  0% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
+  50% { transform: translateY(-40px) translateX(20px); opacity: 0.5; }
+  100% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
+}

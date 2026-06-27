@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { useBlindHiring } from "@/components/providers/BlindHiringProvider";
 import { 
   BrainCircuit, LayoutDashboard, Users, Briefcase, 
   Search, BarChart3, FileText, Settings, Bell, Menu, X, LogOut,
-  ChevronLeft, ChevronRight, Moon, Sun, ChevronsUpDown, Building, Plus
+  ChevronLeft, ChevronRight, Moon, Sun, ChevronsUpDown, Building, Plus, Eye, EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -50,6 +51,7 @@ const navGroups = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { isBlindMode, toggleBlindMode } = useBlindHiring();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDark, setIsDark] = useState(true);
@@ -269,6 +271,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleBlindMode}
+              className={`hidden md:flex gap-2 transition-all ${
+                isBlindMode 
+                ? "bg-primary/10 text-primary border-primary/50" 
+                : "text-muted-foreground border-border/50 hover:bg-muted"
+              }`}
+              title={isBlindMode ? "Blind Hiring Mode ON: Names & Avatars are hidden to reduce bias." : "Turn on Blind Hiring Mode to reduce bias"}
+            >
+              {isBlindMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {isBlindMode ? "Blind Mode ON" : "Blind Mode OFF"}
+            </Button>
+            
             <DropdownMenu onOpenChange={(open) => open && markAsRead()}>
               <DropdownMenuTrigger className="relative p-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer outline-none flex items-center justify-center">
                 <Bell className="h-5 w-5 text-muted-foreground" />

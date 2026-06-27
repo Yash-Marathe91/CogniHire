@@ -3,15 +3,19 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Phone, MapPin, ExternalLink, Download, Star, Briefcase, GraduationCap, Loader2, CheckCircle2, XCircle, FileText } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, ExternalLink, Download, Star, Briefcase, GraduationCap, Loader2, CheckCircle2, XCircle, FileText, MessageCircleQuestion, Send, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+import { useBlindHiring } from "@/components/providers/BlindHiringProvider";
 
 export default function CandidateProfilePage() {
+  const { isBlindMode } = useBlindHiring();
   const { id } = useParams();
   const router = useRouter();
   const [candidate, setCandidate] = useState<any>(null);
@@ -19,6 +23,12 @@ export default function CandidateProfilePage() {
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [interviewQuestions, setInterviewQuestions] = useState<any[]>([]);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+
+  const [outreachEmail, setOutreachEmail] = useState<{subject: string, body: string} | null>(null);
+  const [isGeneratingOutreach, setIsGeneratingOutreach] = useState(false);
+  const [isEmailSent, setIsEmailSent] = useState(false);
 
   useEffect(() => {
     // existing effect code omitted as it's already updated above
@@ -124,6 +134,44 @@ export default function CandidateProfilePage() {
     }
   };
 
+  const generateQuestions = async () => {
+    setIsGeneratingQuestions(true);
+    try {
+      const res = await fetch(`/api/candidates/${id}/interview`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed to generate questions");
+      const data = await res.json();
+      setInterviewQuestions(data.questions || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGeneratingQuestions(false);
+    }
+  };
+
+  const generateOutreach = async () => {
+    setIsGeneratingOutreach(true);
+    setIsEmailSent(false);
+    try {
+      const res = await fetch(`/api/candidates/${id}/outreach`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed to generate outreach email");
+      const data = await res.json();
+      setOutreachEmail(data.email);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGeneratingOutreach(false);
+    }
+  };
+
+  const sendOutreach = () => {
+    // Mock sending email
+    setIsEmailSent(true);
+    setTimeout(() => {
+      setOutreachEmail(null);
+      setIsEmailSent(false);
+    }, 3000);
+  };
+
   const resume = candidate.resume_files && candidate.resume_files.length > 0 
     ? candidate.resume_files[0] 
     : null;
@@ -176,11 +224,15 @@ export default function CandidateProfilePage() {
             <Card className="bg-card border-border/50 text-center pt-8 overflow-hidden relative group">
               <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-primary/20 to-secondary/20" />
               <CardContent className="relative flex flex-col items-center">
-                <Avatar className="h-24 w-24 border-4 border-card mb-4 relative z-10 shadow-lg">
-                  <AvatarImage src={candidate.avatar_url} />
-                  <AvatarFallback>{candidate.name.charAt(0)}</AvatarFallback>
+                <Avatar className="h-24 w-24 border-4 border-card mb-4 relative z-10 shadow-lg blur-0 transition-all duration-300">
+                  <AvatarImage src={isBlindMode ? '' : candidate.avatar_url} />
+                  <AvatarFallback className={isBlindMode ? "bg-muted text-muted-foreground" : ""}>
+                    {isBlindMode ? 'C' : candidate.name.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
-                <h2 className="text-2xl font-bold font-heading">{candidate.name}</h2>
+                <h2 className="text-2xl font-bold font-heading">
+                  {isBlindMode ? `Candidate #${candidate.id.substring(0, 5).toUpperCase()}` : candidate.name}
+                </h2>
                 <p className="text-muted-foreground">{candidate.role}</p>
                 <Badge variant="outline" className={`mt-3 font-normal ${
                     candidate.status === 'Interviewing' ? 'bg-primary/10 text-primary border-primary/20' : 
@@ -193,18 +245,22 @@ export default function CandidateProfilePage() {
                 
                 <div className="w-full mt-8 pt-6 border-t border-border/50 space-y-4 text-sm text-left">
                   <div className="flex items-center gap-3 text-muted-foreground">
-                    <Mail className="h-4 w-4" /> {candidate.email || `${candidate.name.split(' ')[0].toLowerCase()}@example.com`}
+                    <Mail className="h-4 w-4 shrink-0" /> 
+                    <span className="truncate">{isBlindMode ? 'Hidden in Blind Mode' : (candidate.email || `${candidate.name.split(' ')[0].toLowerCase()}@example.com`)}</span>
                   </div>
                   {candidate.phone && (
                     <div className="flex items-center gap-3 text-muted-foreground">
-                      <Phone className="h-4 w-4" /> {candidate.phone}
+                      <Phone className="h-4 w-4 shrink-0" /> 
+                      <span>{isBlindMode ? 'Hidden in Blind Mode' : candidate.phone}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-3 text-muted-foreground">
-                    <MapPin className="h-4 w-4" /> {candidate.location || 'Remote'}
+                    <MapPin className="h-4 w-4 shrink-0" /> 
+                    <span>{isBlindMode ? 'Hidden in Blind Mode' : (candidate.location || 'Remote')}</span>
                   </div>
                   <div className="flex items-center gap-3 text-primary hover:underline cursor-pointer">
-                    <ExternalLink className="h-4 w-4" /> linkedin.com/in/{candidate.name.replace(/\s+/g, '').toLowerCase()}
+                    <ExternalLink className="h-4 w-4 shrink-0" /> 
+                    <span className="truncate">{isBlindMode ? 'Hidden in Blind Mode' : `linkedin.com/in/${candidate.name.replace(/\s+/g, '').toLowerCase()}`}</span>
                   </div>
                 </div>
               </CardContent>
@@ -316,6 +372,134 @@ export default function CandidateProfilePage() {
                     <Star className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
                     <h4 className="font-medium">No AI Match Data Yet</h4>
                     <p className="text-sm text-muted-foreground">Click "Run AI Match" above to evaluate this candidate against the job profile using Gemini 2.5 Flash.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* AI Custom Interview Generation */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <Card className="bg-card border-border/50 overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                <MessageCircleQuestion className="h-32 w-32 text-primary" />
+              </div>
+              <CardHeader className="flex flex-row justify-between items-center z-10 relative">
+                <CardTitle className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
+                    <MessageCircleQuestion className="h-3 w-3 text-primary" />
+                  </div>
+                  AI Interview Prep
+                </CardTitle>
+                {interviewQuestions.length === 0 && (
+                  <Button 
+                    onClick={generateQuestions} 
+                    disabled={isGeneratingQuestions || !aiEval}
+                    variant="outline"
+                    className="border-primary/50 text-primary hover:bg-primary/10"
+                  >
+                    {isGeneratingQuestions ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <MessageCircleQuestion className="h-4 w-4 mr-2" />}
+                    {isGeneratingQuestions ? "Generating..." : "Generate Custom Interview"}
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="space-y-4 relative z-10">
+                {interviewQuestions.length > 0 ? (
+                  <div className="space-y-4">
+                    {interviewQuestions.map((q, idx) => (
+                      <div key={idx} className="p-4 rounded-lg bg-muted/20 border border-border/50 hover:border-primary/30 transition-colors">
+                        <div className="flex gap-3">
+                          <div className="h-6 w-6 shrink-0 rounded bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+                            Q{idx + 1}
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">{q.question}</p>
+                            <p className="text-sm text-muted-foreground mt-2 border-l-2 border-primary/30 pl-3 italic">
+                              <span className="font-semibold text-primary/80 not-italic mr-1">AI Reasoning:</span> 
+                              {q.reasoning}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-8 border border-dashed border-border/50 rounded-lg bg-muted/5">
+                    <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                      Generate targeted interview questions specifically identifying the gaps between this candidate's resume and your job description.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Agentic Outreach Generation */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+            <Card className="bg-card border-border/50 overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                <Sparkles className="h-32 w-32 text-primary" />
+              </div>
+              <CardHeader className="flex flex-row justify-between items-center z-10 relative">
+                <div className="space-y-1">
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Sparkles className="h-3 w-3 text-primary" />
+                    </div>
+                    Agentic Outreach
+                  </CardTitle>
+                  <CardDescription>
+                    AI-drafted, highly personalized email based on candidate experience & job fit.
+                  </CardDescription>
+                </div>
+                {!outreachEmail && (
+                  <Button 
+                    onClick={generateOutreach} 
+                    disabled={isGeneratingOutreach}
+                    variant="outline"
+                    className="border-primary/50 text-primary hover:bg-primary/10"
+                  >
+                    {isGeneratingOutreach ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                    {isGeneratingOutreach ? "Drafting..." : "Auto-Draft Email"}
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="space-y-4 relative z-10">
+                {outreachEmail ? (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Subject</label>
+                      <Input 
+                        value={outreachEmail.subject}
+                        onChange={(e) => setOutreachEmail({...outreachEmail, subject: e.target.value})}
+                        className="bg-muted/30 border-border/50 font-medium" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Body</label>
+                      <Textarea 
+                        value={outreachEmail.body}
+                        onChange={(e) => setOutreachEmail({...outreachEmail, body: e.target.value})}
+                        rows={6}
+                        className="bg-muted/30 border-border/50 resize-none" 
+                      />
+                    </div>
+                    <div className="flex justify-end pt-2">
+                      <Button 
+                        onClick={sendOutreach} 
+                        disabled={isEmailSent}
+                        className="bg-primary hover:bg-primary/90"
+                      >
+                        {isEmailSent ? <CheckCircle2 className="h-4 w-4 mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                        {isEmailSent ? "Sent Successfully" : "Send Email"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center p-8 border border-dashed border-border/50 rounded-lg bg-muted/5">
+                    <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                      Click "Auto-Draft Email" to let Gemini write a highly-targeted outreach message referencing specific projects from this candidate's resume.
+                    </p>
                   </div>
                 )}
               </CardContent>

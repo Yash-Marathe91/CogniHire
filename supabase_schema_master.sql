@@ -258,3 +258,38 @@ CREATE POLICY "Admin view logs" ON public.activity_logs FOR SELECT USING (auth.r
 CREATE POLICY "User view notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "User update notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "System insert notifications" ON public.notifications FOR INSERT WITH CHECK (true);
+
+-- ==========================================
+-- STORAGE BUCKETS & POLICIES
+-- ==========================================
+
+-- Create the Storage bucket for Candidate Resumes and Avatars
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'candidate_files',
+  'candidate_files',
+  true, -- Publicly accessible for avatars/resumes UI
+  10485760, -- 10 MB limit
+  ARRAY['image/png', 'image/jpeg', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
+) ON CONFLICT (id) DO NOTHING;
+
+-- Storage RLS Policies for candidate_files bucket
+-- Allow public access to view files (since resumes/avatars might be viewed by recruiters)
+CREATE POLICY "Public Access" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'candidate_files');
+
+-- Allow authenticated users to upload files
+CREATE POLICY "Auth Users Upload" 
+ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'candidate_files' AND auth.role() = 'authenticated');
+
+-- Allow users to update their own uploads (optional, based on owner)
+CREATE POLICY "Auth Users Update" 
+ON storage.objects FOR UPDATE 
+USING (bucket_id = 'candidate_files' AND auth.uid() = owner);
+
+-- Allow users to delete their own uploads
+CREATE POLICY "Auth Users Delete" 
+ON storage.objects FOR DELETE 
+USING (bucket_id = 'candidate_files' AND auth.uid() = owner);

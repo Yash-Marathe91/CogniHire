@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Bell, Palette, Shield, Briefcase, Loader2, GitBranch, Users, MessageCircle, Globe, Link as LinkIcon, Camera } from "lucide-react";
+import { User, Bell, Palette, Shield, Briefcase, Loader2, GitBranch, Users, MessageCircle, Globe, Link as LinkIcon, Camera, Moon, Sun, Monitor, Eye, EyeOff, Key, Smartphone, History, Building2, CreditCard, Users2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+import { useBlindHiring } from "@/components/providers/BlindHiringProvider";
 
 const tabs = [
   { id: "profile", label: "Public Profile", icon: User },
@@ -17,9 +18,24 @@ const tabs = [
 ];
 
 export default function SettingsPage() {
+  const { isBlindMode, toggleBlindMode } = useBlindHiring();
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+  const [notifPrefs, setNotifPrefs] = useState({
+    emailAlerts: true,
+    newApplications: true,
+    weeklyDigest: false,
+    securityAlerts: true
+  });
+  
+  useEffect(() => {
+    if (document.documentElement.classList.contains("dark")) setIsDark(true);
+    else setIsDark(false);
+  }, []);
+  
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -33,7 +49,8 @@ export default function SettingsPage() {
     github: "",
     linkedin: "",
     pronouns: "",
-    skills: ""
+    skills: "",
+    avatarUrl: ""
   });
 
   useEffect(() => {
@@ -56,7 +73,8 @@ export default function SettingsPage() {
             github: profile.github || "",
             linkedin: profile.linkedin || "",
             pronouns: profile.pronouns || "",
-            skills: profile.skills || ""
+            skills: profile.skills || "",
+            avatarUrl: profile.avatar_url || ""
           });
         }
       }
@@ -85,11 +103,50 @@ export default function SettingsPage() {
         github: profileData.github,
         linkedin: profileData.linkedin,
         pronouns: profileData.pronouns,
-        skills: profileData.skills
+        skills: profileData.skills,
+        avatar_url: profileData.avatarUrl
       }).eq('id', user.id);
     }
     // Simulate slight delay for UX
     setTimeout(() => setIsSaving(false), 800);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    setIsUploadingAvatar(true);
+    
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error("No user found");
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('candidate_files')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('candidate_files')
+        .getPublicUrl(filePath);
+
+      setProfileData(prev => ({ ...prev, avatarUrl: publicUrl }));
+      
+      // Instantly save it to the DB so it persists
+      await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   return (
@@ -150,20 +207,50 @@ export default function SettingsPage() {
                       <>
                         {/* Avatar Section */}
                         <div className="flex items-center gap-6">
-                          <div className="relative group cursor-pointer">
-                            <div className="h-24 w-24 rounded-full bg-muted border-4 border-background shadow-lg overflow-hidden flex items-center justify-center text-4xl font-bold text-muted-foreground">
-                              {profileData.firstName.charAt(0)}{profileData.lastName.charAt(0)}
+                          <label className="relative group cursor-pointer block">
+                            <div className="h-24 w-24 rounded-full bg-muted border-4 border-background shadow-lg overflow-hidden flex items-center justify-center text-4xl font-bold text-muted-foreground relative">
+                              {profileData.avatarUrl ? (
+                                <img src={profileData.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                              ) : (
+                                <>{profileData.firstName.charAt(0)}{profileData.lastName.charAt(0)}</>
+                              )}
+                              
+                              {isUploadingAvatar && (
+                                <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-sm z-10">
+                                  <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                                </div>
+                              )}
                             </div>
-                            <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
                               <Camera className="h-6 w-6 text-white" />
                             </div>
-                          </div>
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              accept="image/png, image/jpeg, image/gif"
+                              onChange={handleAvatarUpload}
+                              disabled={isUploadingAvatar}
+                            />
+                          </label>
                           <div className="space-y-1">
                             <h3 className="font-medium text-sm">Profile picture</h3>
                             <p className="text-xs text-muted-foreground max-w-xs">Upload a picture larger than 96x96 pixels. Use PNG, JPG or GIF.</p>
                             <div className="flex gap-2 mt-2">
-                              <Button size="sm" variant="outline">Upload</Button>
-                              <Button size="sm" variant="ghost" className="text-destructive">Remove</Button>
+                              <label className={`cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 ${isUploadingAvatar ? 'opacity-50 pointer-events-none' : ''}`}>
+                                Upload
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  accept="image/png, image/jpeg, image/gif"
+                                  onChange={handleAvatarUpload}
+                                  disabled={isUploadingAvatar}
+                                />
+                              </label>
+                              {profileData.avatarUrl && (
+                                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => {
+                                  setProfileData(prev => ({ ...prev, avatarUrl: "" }));
+                                }}>Remove</Button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -253,19 +340,230 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                {activeTab !== "profile" && (
-                  <div className="py-16 flex flex-col items-center justify-center text-center">
-                    <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-6">
-                      {(() => {
-                        const ActiveIcon = tabs.find(t => t.id === activeTab)?.icon;
-                        return ActiveIcon ? <ActiveIcon className="h-10 w-10 text-muted-foreground" /> : null;
-                      })()}
+                {activeTab === "appearance" && (
+                  <div className="space-y-8 animate-in fade-in duration-300">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Monitor className="h-5 w-5 text-primary" /> Theme Preferences
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button
+                          onClick={() => {
+                            document.documentElement.classList.remove("dark");
+                            setIsDark(false);
+                          }}
+                          className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${
+                            !isDark ? "border-primary bg-primary/5" : "border-border/50 hover:border-primary/50 hover:bg-muted/50"
+                          }`}
+                        >
+                          <Sun className={`h-8 w-8 mb-3 ${!isDark ? "text-primary" : "text-muted-foreground"}`} />
+                          <span className="font-medium">Light Mode</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            document.documentElement.classList.add("dark");
+                            setIsDark(true);
+                          }}
+                          className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${
+                            isDark ? "border-primary bg-primary/5" : "border-border/50 hover:border-primary/50 hover:bg-muted/50"
+                          }`}
+                        >
+                          <Moon className={`h-8 w-8 mb-3 ${isDark ? "text-primary" : "text-muted-foreground"}`} />
+                          <span className="font-medium">Dark Mode</span>
+                        </button>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-medium">{tabs.find(t => t.id === activeTab)?.label} Settings</h3>
-                    <p className="text-muted-foreground mt-3 max-w-md">
-                      These configuration options are tied to your workspace policies.
-                    </p>
-                    <Button variant="outline" className="mt-8">Contact Workspace Admin</Button>
+
+                    <div className="pt-6 border-t border-border/50 space-y-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                            {isBlindMode ? <EyeOff className="h-5 w-5 text-primary" /> : <Eye className="h-5 w-5 text-primary" />} 
+                            Blind Hiring Mode
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1 max-w-lg">
+                            When enabled, candidate names, photos, and contact info are hidden to reduce unconscious bias during the screening process.
+                          </p>
+                        </div>
+                        <button 
+                          onClick={toggleBlindMode}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isBlindMode ? 'bg-primary' : 'bg-input'}`}
+                        >
+                          <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${isBlindMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "notifications" && (
+                  <div className="space-y-6 animate-in fade-in duration-300">
+                    <h3 className="text-lg font-semibold">Email Notifications</h3>
+                    <div className="space-y-4">
+                      {[
+                        { id: 'emailAlerts', title: 'System Alerts', desc: 'Receive important system and account alerts.' },
+                        { id: 'newApplications', title: 'New Applications', desc: 'Get notified when a new candidate applies.' },
+                        { id: 'weeklyDigest', title: 'Weekly Digest', desc: 'Receive a weekly summary of workspace activity.' },
+                        { id: 'securityAlerts', title: 'Security Alerts', desc: 'Get notified about unusual account activity.' }
+                      ].map((item) => (
+                        <div key={item.id} className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-muted/10">
+                          <div>
+                            <p className="font-medium">{item.title}</p>
+                            <p className="text-sm text-muted-foreground">{item.desc}</p>
+                          </div>
+                          <button 
+                            onClick={() => setNotifPrefs(prev => ({ ...prev, [item.id]: !prev[item.id as keyof typeof prev] }))}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${notifPrefs[item.id as keyof typeof notifPrefs] ? 'bg-primary' : 'bg-input'}`}
+                          >
+                            <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${notifPrefs[item.id as keyof typeof notifPrefs] ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="pt-6 border-t border-border/50 flex justify-end">
+                      <Button className="bg-primary hover:bg-primary/90">Save Preferences</Button>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "security" && (
+                  <div className="space-y-8 animate-in fade-in duration-300">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Key className="h-5 w-5 text-primary" /> Password & Authentication
+                      </h3>
+                      <div className="space-y-4 max-w-xl">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-muted-foreground">Current Password</label>
+                          <Input type="password" placeholder="••••••••" className="bg-input/50" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-muted-foreground">New Password</label>
+                          <Input type="password" placeholder="••••••••" className="bg-input/50" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-muted-foreground">Confirm New Password</label>
+                          <Input type="password" placeholder="••••••••" className="bg-input/50" />
+                        </div>
+                        <Button className="mt-2">Update Password</Button>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-border/50 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                            <Smartphone className="h-5 w-5 text-primary" /> Two-Factor Authentication
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1 max-w-lg">
+                            Add an extra layer of security to your account by requiring more than just a password to log in.
+                          </p>
+                        </div>
+                        <Button variant="outline" className="shrink-0">Enable 2FA</Button>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-border/50 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                            <History className="h-5 w-5 text-primary" /> Active Sessions
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1 max-w-lg">
+                            Manage and log out your active sessions on other browsers and devices.
+                          </p>
+                        </div>
+                        <Button variant="destructive" className="shrink-0">Log out all devices</Button>
+                      </div>
+                      
+                      <div className="border border-border/50 rounded-lg p-4 bg-muted/10 space-y-3 mt-4">
+                        <div className="flex justify-between items-center text-sm">
+                          <div className="flex items-center gap-3">
+                            <Monitor className="h-4 w-4 text-primary" />
+                            <span><strong className="block">Windows 11 • Chrome</strong> <span className="text-muted-foreground text-xs">Delhi, India • Active now</span></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "workspace" && (
+                  <div className="space-y-8 animate-in fade-in duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <Card className="bg-muted/10 border-border/50">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                            <Building2 className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">CogniHire Inc.</p>
+                            <p className="text-xs text-muted-foreground">Pro Plan</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-muted/10 border-border/50">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-success/20 flex items-center justify-center shrink-0">
+                            <Users2 className="h-5 w-5 text-success" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">12 / 50</p>
+                            <p className="text-xs text-muted-foreground">Team Members</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-muted/10 border-border/50">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
+                            <CreditCard className="h-5 w-5 text-secondary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Auto-renews</p>
+                            <p className="text-xs text-muted-foreground">Oct 15, 2026</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Users className="h-5 w-5 text-primary" /> Team Management
+                      </h3>
+                      <div className="border border-border/50 rounded-lg overflow-hidden">
+                        <div className="bg-muted/30 px-4 py-3 border-b border-border/50 flex justify-between items-center">
+                          <span className="font-medium text-sm">Active Members</span>
+                          <Button size="sm">Invite Member</Button>
+                        </div>
+                        <div className="divide-y divide-border/50">
+                          <div className="px-4 py-3 flex justify-between items-center text-sm">
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-full bg-primary/20 flex justify-center items-center font-bold text-primary text-xs">YA</div>
+                              <span><strong>Yash Marathe</strong> <span className="text-muted-foreground block text-xs">yash@cognihire.com</span></span>
+                            </div>
+                            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded">Owner</span>
+                          </div>
+                          <div className="px-4 py-3 flex justify-between items-center text-sm">
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-full bg-secondary/20 flex justify-center items-center font-bold text-secondary text-xs">JS</div>
+                              <span><strong>John Smith</strong> <span className="text-muted-foreground block text-xs">john@cognihire.com</span></span>
+                            </div>
+                            <span className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded">Recruiter</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-destructive/20 space-y-4">
+                      <h3 className="text-lg font-semibold text-destructive flex items-center gap-2">Danger Zone</h3>
+                      <div className="border border-destructive/20 rounded-lg p-4 bg-destructive/5 flex justify-between items-center">
+                        <div>
+                          <p className="font-medium text-destructive">Delete Workspace</p>
+                          <p className="text-sm text-muted-foreground">Once you delete a workspace, there is no going back. Please be certain.</p>
+                        </div>
+                        <Button variant="destructive">Delete Workspace</Button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>

@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   description: "Premium AI-powered recruitment platform.",
 };
 
+import { BlindHiringProvider } from "@/components/providers/BlindHiringProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -32,7 +34,11 @@ export default function RootLayout({
       lang="en"
       className={`dark ${geistSans.variable} ${geistMono.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <BlindHiringProvider>
+          {children}
+        </BlindHiringProvider>
+      </body>
     </html>
   );
 }

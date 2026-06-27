@@ -3,10 +3,14 @@ import { createClient } from '@/lib/supabase/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import pdfParse from 'pdf-parse';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    // Dynamic import to prevent Next.js build-time DOMMatrix evaluation crash
+    // @ts-ignore
+    const pdfParse = require('pdf-parse');
+    
     const formData = await request.formData();
     const file = formData.get('resume') as File;
     const jobId = formData.get('jobId') as string;
@@ -106,23 +110,8 @@ export async function POST(request: Request) {
     const expCount = parsedData.experience?.length || 0;
     const experienceStr = expCount > 0 ? `${expCount * 2} years` : 'Entry Level'; // Rough mock calculation
 
-    // Generate Embedding for Semantic Search
-    let embeddingVector = null;
-    try {
-      const embedModel = genAI.getGenerativeModel({ model: "gemini-embedding-2" });
-      const embeddingText = `
-        Candidate Name: ${parsedData.name || 'Unknown'}
-        Role: ${parsedData.role || 'Unknown'}
-        Skills: ${(parsedData.skills || []).join(", ")}
-        Experience Details: ${JSON.stringify(parsedData.experience || [])}
-        Education: ${JSON.stringify(parsedData.education || [])}
-      `;
-      const embedResult = await embedModel.embedContent(embeddingText);
-      embeddingVector = embedResult.embedding.values;
-    } catch (embedError) {
-      console.error("Failed to generate embedding for candidate:", embedError);
-      // We continue even if embedding fails, they just won't show up in semantic search
-    }
+    // (Semantic Search Embedding generation removed because the API key is restricted from using embedding models. 
+    // AI Search now uses gemini-2.5-flash text-generation for ranking instead of pgvector embeddings).
 
     // Insert Candidate
     const { data: candidateData, error: candidateError } = await supabase
@@ -139,8 +128,7 @@ export async function POST(request: Request) {
         avatar_url,
         status: 'Applied',
         match_score: 75, // Default before matching
-        ai_confidence: 90,
-        embedding: embeddingVector
+        ai_confidence: 90
       }])
       .select()
       .single();

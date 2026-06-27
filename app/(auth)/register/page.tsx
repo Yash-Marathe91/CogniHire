@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleOAuth = async (provider: "google" | "github") => {
     setIsLoading(true);
@@ -32,12 +33,16 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSuccess("");
     
     const formData = new FormData(e.currentTarget);
     const result = await signup(formData);
     
     if (result?.error) {
       setError(result.error);
+      setIsLoading(false);
+    } else if (result?.success) {
+      setSuccess(result.success);
       setIsLoading(false);
     }
   };
@@ -142,6 +147,12 @@ export default function RegisterPage() {
         {error && (
           <div className="text-sm text-destructive font-medium bg-destructive/10 p-3 rounded-lg border border-destructive/20">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="text-sm text-green-600 font-medium bg-green-50 p-3 rounded-lg border border-green-200">
+            {success}
           </div>
         )}
 
